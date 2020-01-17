@@ -4,10 +4,10 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
-import android.text.style.ImageSpan
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import com.oo.pdfdocument.pdfbuilder.CenterImageSpan
 import com.oo.pdfdocument.pdfbuilder.PdfBuilder
 
 class MainActivity : AppCompatActivity() {
@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
                 "（在文本中添加表情（在文本中添加表情（在文本中添加表情（在文本中添加表情（在文本中添加表情（在文本中添加表情（在文本中添加表end");
         val drawable = resources.getDrawable(R.mipmap.ic_launcher);
         drawable.setBounds(0, 0, 42, 42);
-        val imageSpan = ImageSpan(drawable);
+        val imageSpan = CenterImageSpan(drawable);
         spannableString.setSpan(imageSpan, 8, 12, Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
 
         findViewById<Button>(R.id.add_text).setOnClickListener {
