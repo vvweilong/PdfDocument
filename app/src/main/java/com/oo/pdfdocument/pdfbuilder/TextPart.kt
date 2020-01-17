@@ -3,21 +3,21 @@ package com.oo.pdfdocument.pdfbuilder
 import android.graphics.Canvas
 import android.graphics.Region
 import android.text.Layout
-import android.text.SpannableString
+import android.text.SpannableStringBuilder
 import android.text.StaticLayout
 import android.text.TextPaint
 import android.util.Log
 
-class TextPart(conten: SpannableString, width: Int) : Part() {
+class TextPart(conten: SpannableStringBuilder, width: Int) : Part() {
 
 
     var staticLayout:StaticLayout
-    var content: SpannableString
+    var content: SpannableStringBuilder
     var pageWidth:Int= width
 
 
     init {
-        content = SpannableString(conten)
+        this.content = conten
     }
 
 
@@ -34,7 +34,7 @@ class TextPart(conten: SpannableString, width: Int) : Part() {
         )
     }
 
-    private fun reinit(contenSS: SpannableString) {
+    private fun reinit(contenSS: SpannableStringBuilder) {
         this.content = contenSS
         val textPaint = TextPaint(TextPaint.ANTI_ALIAS_FLAG)
         staticLayout = StaticLayout(
@@ -80,8 +80,8 @@ class TextPart(conten: SpannableString, width: Int) : Part() {
             splitLine+=1
         }
         val splitStrPosition = staticLayout.getLineEnd(splitLine)
-        val remainContent = SpannableString(content.substring(0, splitStrPosition))
-        val splitedContent = SpannableString(content.substring(splitStrPosition, content.length))
+        val remainContent = SpannableStringBuilder(content.substring(0, splitStrPosition))
+        val splitedContent = SpannableStringBuilder(content.substring(splitStrPosition, content.length))
         reinit(remainContent)
         return TextPart(splitedContent,pageWidth)
     }
