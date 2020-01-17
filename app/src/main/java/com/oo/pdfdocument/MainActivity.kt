@@ -4,12 +4,11 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
-import android.text.style.ImageSpan
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import com.oo.pdfdocument.pdfbuilder.ImageRender
+import com.oo.pdfdocument.pdfbuilder.CenterImageSpan
 import com.oo.pdfdocument.pdfbuilder.PdfBuilder
 import com.oo.pdfdocument.pdfbuilder.UrlImageSpan
 
@@ -38,8 +37,8 @@ class MainActivity : AppCompatActivity() {
         textView.text = spannableString
 
         drawable.setBounds(0, 0, 42, 42);
-        val imageSpan = ImageSpan(drawable);
-        spannableString.setSpan(imageSpan, 8, 12, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
+        val imageSpan = CenterImageSpan(drawable);
+        spannableString.setSpan(imageSpan, 8, 12, Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
 
         //设置网络图片
         val imgUrl ="https://jyimgs.gsxcdn.com/upload/image/question/20190328/2019032813351415321439.png"
