@@ -46,10 +46,10 @@ class MainActivity : AppCompatActivity() {
         spannableString.setSpan(imageSpan, 8, 12, Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
 
         //设置网络图片
-        val imgUrl ="https://jyimgs.gsxcdn.com/upload/image/question/20190328/2019032813351415321439.png"
-        val size = arrayOf("117","137")
-        val imageSpanNet = UrlImageSpan(this, imgUrl,textView,2,300,size)
-        spannableString.setSpan(imageSpanNet,30,40,Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+//        val imgUrl ="https://jyimgs.gsxcdn.com/upload/image/question/20190328/2019032813351415321439.png"
+//        val size = arrayOf("117","137")
+//        val imageSpanNet = UrlImageSpan(this, imgUrl,textView,2,300,size)
+//        spannableString.setSpan(imageSpanNet,30,40,Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
 
 
         findViewById<Button>(R.id.add_text).setOnClickListener {
