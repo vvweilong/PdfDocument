@@ -2,15 +2,16 @@ package com.oo.pdfdocument
 
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.text.SpannableString
-import android.text.Spanned
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import com.oo.pdfdocument.pdfbuilder.CenterImageSpan
+import com.google.gson.Gson
+import com.oo.pdfdocument.bean.DataResponse
 import com.oo.pdfdocument.pdfbuilder.PdfBuilder
 import com.oo.pdfdocument.pdfbuilder.UrlImageSpan
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,6 +20,7 @@ class MainActivity : AppCompatActivity() {
 
     var count = 0
 
+    val gson = Gson()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,26 +53,49 @@ class MainActivity : AppCompatActivity() {
             count += 1
         }
 
-        findViewById<Button>(R.id.create).setOnClickListener {
 
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
-                pdfBuilder.create()
-                pdfBuilder = PdfBuilder(this)
-            } else {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(
-                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        android.Manifest.permission.READ_EXTERNAL_STORAGE
-                    ),
-                    0
-                )
+        findViewById<Button>(R.id.add_text).setOnClickListener {
+            val writePermission = ActivityCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
+            val readPermission = ActivityCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.READ_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (writePermission && readPermission) {
+                val open = assets.open("response.json")
+                val readText = BufferedReader(InputStreamReader(open)).readText()
+                val response = gson.fromJson(readText, DataResponse::class.java)
+                pdfBuilder.prepareImageResouce(this,response,object :PdfBuilder.ResourcePrepareCallback{
+                    override fun onPrepared() {
+                        pdfBuilder.create()
+                    }
+                })
             }
         }
+
+//        findViewById<Button>(R.id.create).setOnClickListener {
+//
+//            if (ActivityCompat.checkSelfPermission(
+//                    this,
+//                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+//                ) == PackageManager.PERMISSION_GRANTED
+//            ) {
+//                pdfBuilder.create()
+//                pdfBuilder = PdfBuilder(this)
+//            } else {
+//                ActivityCompat.requestPermissions(
+//                    this,
+//                    arrayOf(
+//                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+//                        android.Manifest.permission.READ_EXTERNAL_STORAGE
+//                    ),
+//                    0
+//                )
+//            }
+//        }
     }
 
 

@@ -1,11 +1,15 @@
 package com.oo.pdfdocument.pdfbuilder
 
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.drawable.Drawable
 import android.text.style.ImageSpan
 
-class CenterImageSpan(drawable: Drawable): ImageSpan(drawable) {
+class CenterImageSpan: ImageSpan {
+    constructor(b: Bitmap) : super(b)
+    constructor(drawable: Drawable) : super(drawable)
+
 
     override fun getSize(
         paint: Paint,
