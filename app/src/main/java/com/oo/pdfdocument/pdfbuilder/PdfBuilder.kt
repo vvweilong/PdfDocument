@@ -19,6 +19,7 @@ import kotlin.math.roundToInt
 
 
 class PdfBuilder(val context: Context) {
+    val TAG  = "PdfBuilder"
     var pdfDocument = PdfDocument()
     var pageWidth = 0
     var pageHeight = 0
@@ -162,6 +163,9 @@ class PdfBuilder(val context: Context) {
 
                                     for ((url, path) in localPath) {
                                         if (TextUtils.equals(url,questionResp.content)) {
+                                            Log.i(TAG, "structPdfData: url $url")
+                                            Log.i(TAG, "structPdfData: path ${questionResp.content}")
+                                            Log.i(TAG, "structPdfData: content ${path}")
                                             questionResp.content = path
                                         }
                                     }
