@@ -2,12 +2,15 @@ package com.oo.pdfdocument
 
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.Spanned
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.google.gson.Gson
 import com.oo.pdfdocument.bean.DataResponse
+import com.oo.pdfdocument.pdfbuilder.CenterImageSpan
 import com.oo.pdfdocument.pdfbuilder.PdfBuilder
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -50,32 +53,5 @@ class MainActivity : AppCompatActivity() {
                 })
             }
         }
-
-//        findViewById<Button>(R.id.create).setOnClickListener {
-//
-//            if (ActivityCompat.checkSelfPermission(
-//                    this,
-//                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-//                ) == PackageManager.PERMISSION_GRANTED
-//            ) {
-//                pdfBuilder.create()
-//                pdfBuilder = PdfBuilder(this)
-//            } else {
-//                ActivityCompat.requestPermissions(
-//                    this,
-//                    arrayOf(
-//                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-//                        android.Manifest.permission.READ_EXTERNAL_STORAGE
-//                    ),
-//                    0
-//                )
-//            }
-//        }
-    }
-
-
-    override fun onResume() {
-        super.onResume()
-
     }
 }
