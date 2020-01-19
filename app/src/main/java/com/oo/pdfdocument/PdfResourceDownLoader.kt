@@ -22,51 +22,66 @@ object PdfResourceDownLoader {
     private val mRequestHandler:Handler
     private val mainHandler : Handler
 
-    private val linkedBlockingQueue = LinkedBlockingQueue<HttpURLConnection>()
+    private val linkedBlockingQueue = LinkedBlockingQueue<String>()
 
     init {
         handlerThread.start()
         mRequestHandler=Handler(handlerThread.looper)
         mainHandler = Handler(Looper.getMainLooper())
     }
-
-    fun downloadImage(context: Context,url:String,callback:RequestCallback){
-        val buildConnect = buildConnect(url)
-        startdownImage(context,buildConnect,callback)
+    fun clearHistory(context: Context){
+        val file = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+        deleteChildFiles(file)
+    }
+    private fun deleteChildFiles(dir:File?):Boolean{
+        if (dir==null) {
+            return true
+        }
+        if (dir.listFiles().isNullOrEmpty()) {
+            return dir.delete()
+        }
+        val iterator = dir.listFiles()?.iterator()
+        var currentDir :File?=null
+        while (iterator?.hasNext()==true){
+            currentDir=iterator.next()
+            if (deleteChildFiles(currentDir).not()) {
+                return false
+            }
+        }
+        return true
     }
 
-
     fun downloadImages(context: Context,urls:ArrayList<String>,callback: MultiRequestCallback){
+        clearHistory(context)
         for (url in urls) {
-            linkedBlockingQueue.add(buildConnect(url))
+            linkedBlockingQueue.add(url)
         }
-
-        val results = ArrayList<Pair<String,String>>()
-
-        val multCallback=object :RequestCallback{
-            override fun success(response: String?) {
-                if (linkedBlockingQueue.isNotEmpty()) {
-                    val poll = linkedBlockingQueue.take()
-                    if (response != null) {
-                        results.add(Pair(poll.url.toString(),response))
-                    }
-                    startdownImage(context,poll,this)
-                }else{
-                    callback.success(results)
+        val result = HashMap<String,String>()
+        val requestCallback = object : RequestCallback {
+            override fun success(url: String, response: String?) {
+                if (response != null) {
+                    result.put(url,response)
                 }
+                if(linkedBlockingQueue.isNullOrEmpty()){
+                    callback.success(result)
+                    return
+                }
+                val takeUrl = linkedBlockingQueue.take()
+                startdownImage(context,takeUrl,this)
             }
 
-            override fun failure(response: String?) {
-                if (linkedBlockingQueue.isNotEmpty()) {
-                    val poll = linkedBlockingQueue.take()
-                    startdownImage(context,poll,this)
-                }else{
-                    callback.success(results)
+            override fun failure(url: String, response: String?) {
+                if(linkedBlockingQueue.isNullOrEmpty()){
+                    callback.success(result)
+                    return
                 }
+                val takeUrl = linkedBlockingQueue.take()
+                startdownImage(context,takeUrl,this)
             }
         }
-        val poll = linkedBlockingQueue.take()
-        startdownImage(context,poll,multCallback )
+
+        val takeUrl = linkedBlockingQueue.take()
+        startdownImage(context,takeUrl,requestCallback)
 
     }
 
@@ -79,13 +94,12 @@ object PdfResourceDownLoader {
         return openConnection
     }
 
-    fun startdownImage(context: Context,connect: HttpURLConnection,callback: RequestCallback){
+    fun startdownImage(context: Context,url: String,callback: RequestCallback){
         mRequestHandler.post {
+            val connect = buildConnect(url)
             try {
                 connect.connect()
-
             if (connect.responseCode == HttpURLConnection.HTTP_OK) {
-
                 val readBytes = connect.inputStream.readBytes()
 
                 val file = File(
@@ -102,22 +116,22 @@ object PdfResourceDownLoader {
                 connect.disconnect()
 
                 mainHandler.post {
-                    callback.success(file.path)
+                    callback.success(url,file.path)
                 }
             }else{
                 mainHandler.post {
-                    callback.failure("failure")
+                    callback.failure(url,"failure")
                 }
             }
             } catch (e: Exception) {
                 e.printStackTrace()
-                callback.failure("connectfail")
+                callback.failure(url,"connectfail")
             }
         }
     }
 
     interface MultiRequestCallback{
-        fun success(paths:ArrayList<Pair<String,String>>)
+        fun success(paths:HashMap<String,String>)
     }
 
     fun startRequest(connect:HttpURLConnection,callback:RequestCallback){
@@ -128,21 +142,21 @@ object PdfResourceDownLoader {
                 val bufferedReader = BufferedReader(inputStreamReader)
                 val readText = bufferedReader.readText()
                 mainHandler.post {
-                    callback.success(readText)
+                    callback.success(connect.url.toString(),readText)
                 }
             }else{
                 val inputStreamReader = InputStreamReader(connect.inputStream)
                 val bufferedReader = BufferedReader(inputStreamReader)
                 val readText = bufferedReader.readText()
                 mainHandler.post {
-                    callback.failure(readText)
+                    callback.failure(connect.url.toString(),readText)
                 }
             }
         }
     }
     interface RequestCallback{
-        fun success(response:String?)
-        fun failure(response:String?)
+        fun success(url:String,response:String?)
+        fun failure(url:String,response:String?)
     }
     interface DownloadCallback{
         fun imageDownloaded()

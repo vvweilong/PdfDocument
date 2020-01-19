@@ -72,17 +72,21 @@ class TextPart(conten: SpannableStringBuilder, width: Int) : Part() {
         }
         //走到这里 至少可以拆分一行出来 找出可拆分到的行数
         var splitLine = 0
-        for (lineNum in 0 until staticLayout.lineCount){
+        Log.i("1111", "desier $desierHeight ")
+        for (lineNum in 0 until  staticLayout.lineCount){
             val lb = staticLayout.getLineBottom(lineNum)
-            if(lb>desierHeight){
-                break;
+            Log.i("1111", "lineBottom $lb ")
+            if(lb > desierHeight){
+                //如果高度超了
+                splitLine = lineNum-1
+                break
             }
-            splitLine+=1
         }
-        val splitStrPosition = staticLayout.getLineEnd(splitLine)
-        val remainContent = SpannableStringBuilder(content.substring(0, splitStrPosition))
+        val splitStrPosition = staticLayout.getLineEnd(Math.max(0,splitLine))
+        val remainContent = SpannableStringBuilder(content.substring(0, Math.min(Math.max(0,splitStrPosition),content.length)))
         val splitedContent = SpannableStringBuilder(content.substring(splitStrPosition, content.length))
         reinit(remainContent)
+        Log.i("tag", "canSplit: ${measureSize()}")
         return TextPart(splitedContent,pageWidth)
     }
 }

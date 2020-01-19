@@ -1,6 +1,6 @@
 {
   "status": 0,
-  "error_info": "msg",
+  "error_info": "",
   "code": 0,
   "msg": "",
   "data": [
@@ -45,7 +45,50 @@
       "lessonName": "EVA-错题本展示1",
       "clazzLessonNumber": "3453111324776449",
       "dataId": "818",
-      "lastOption": "A"
+      "lastOption": "B"
+    },
+    {
+      "homeworkQuestionType": 1,
+      "questionStem": [
+        {
+          "type": 5,
+          "text": "[{\"typeEnum\":\"text\",\"content\":\"如果过一个多边形的一个顶点的对角线有\",\"style\":{},\"source\":null},{\"typeEnum\":\"latex\",\"content\":\"https://jyimgs.gsxcdn.com/upload/image/question/format/20191105/20191105001407623abdbca853e44482481ce79e1242c9daf505878.png\",\"style\":{\"src\":\"https://jyimgs.gsxcdn.com/upload/image/question/format/20191105/20191105001407623abdbca853e44482481ce79e1242c9daf505878.png\",\"width\":\"8\",\"height\":\"15\"},\"source\":\"$6$\"},{\"typeEnum\":\"text\",\"content\":\"条，则该多边形是\",\"style\":{},\"source\":null},{\"typeEnum\":\"latex\",\"content\":\"https://jyimgs.gsxcdn.com/upload/image/question/format/20191105/20191105001409030d4823b6e867547468dda1ce1c60c8201360324.png\",\"style\":{\"src\":\"https://jyimgs.gsxcdn.com/upload/image/question/format/20191105/20191105001409030d4823b6e867547468dda1ce1c60c8201360324.png\",\"width\":\"29\",\"height\":\"20\"},\"source\":\"\\\\((\\\\quad)\\\\)\"},{\"typeEnum\":\"text\",\"content\":\"．\",\"style\":{},\"source\":null}]"
+        }
+      ],
+      "questionOption": [
+        {
+          "type": 5,
+          "text": "[[{\"typeEnum\":\"text\",\"content\":\"A． 九边形\",\"style\":{},\"source\":null}],[{\"typeEnum\":\"text\",\"content\":\"B． 八边形\",\"style\":{},\"source\":null}],[{\"typeEnum\":\"text\",\"content\":\"C． 七边形\",\"style\":{},\"source\":null}],[{\"typeEnum\":\"text\",\"content\":\"D． 六边形\",\"style\":{},\"source\":null}]]"
+        }
+      ],
+      "questionAnswer": [
+        {
+          "type": 5,
+          "text": "[{\"typeEnum\":\"text\",\"content\":\"A\",\"style\":{},\"source\":null}]"
+        }
+      ],
+      "questionAnalysis": [
+        {
+          "type": 5,
+          "text": "[{\"typeEnum\":\"text\",\"content\":\"解：∵过一个多边形的一个顶点的对角线有\",\"style\":{},\"source\":null},{\"typeEnum\":\"latex\",\"content\":\"https://jyimgs.gsxcdn.com/upload/image/question/format/20191105/201911050014104208e6454cf02294cef9d895aeef2a7611f609320.png\",\"style\":{\"src\":\"https://jyimgs.gsxcdn.com/upload/image/question/format/20191105/201911050014104208e6454cf02294cef9d895aeef2a7611f609320.png\",\"width\":\"8\",\"height\":\"15\"},\"source\":\"$6$\"},{\"typeEnum\":\"text\",\"content\":\"条，\\n\",\"style\":{},\"source\":null},{\"typeEnum\":\"br\",\"content\":null,\"style\":{},\"source\":null},{\"typeEnum\":\"text\",\"content\":\"∴多边形的边数为\",\"style\":{},\"source\":null},{\"typeEnum\":\"latex\",\"content\":\"https://jyimgs.gsxcdn.com/upload/image/question/format/20191105/20191105001411670cbfac7a0a19c49a788860145ade566bb210476.png\",\"style\":{\"src\":\"https://jyimgs.gsxcdn.com/upload/image/question/format/20191105/20191105001411670cbfac7a0a19c49a788860145ade566bb210476.png\",\"width\":\"67\",\"height\":\"16\"},\"source\":\"$6+3\u003d9$\"},{\"typeEnum\":\"text\",\"content\":\"，\\n\",\"style\":{},\"source\":null},{\"typeEnum\":\"br\",\"content\":null,\"style\":{},\"source\":null},{\"typeEnum\":\"text\",\"content\":\"∴这个多边形是九边形．\\n\",\"style\":{},\"source\":null},{\"typeEnum\":\"br\",\"content\":null,\"style\":{},\"source\":null},{\"typeEnum\":\"text\",\"content\":\"故选\",\"style\":{},\"source\":null},{\"typeEnum\":\"latex\",\"content\":\"https://jyimgs.gsxcdn.com/upload/image/question/format/20191105/2019110500141290431626b7ad3134f9fbd93cfcd640e022a708198.png\",\"style\":{\"src\":\"https://jyimgs.gsxcdn.com/upload/image/question/format/20191105/2019110500141290431626b7ad3134f9fbd93cfcd640e022a708198.png\",\"width\":\"12\",\"height\":\"15\"},\"source\":\"\\\\(\\\\rm A\\\\)\"},{\"typeEnum\":\"br\",\"content\":null,\"style\":{},\"source\":null},{\"typeEnum\":\"text\",\"content\":\"根据从每一个顶点处可以作的对角线的条数为\",\"style\":{},\"source\":null},{\"typeEnum\":\"latex\",\"content\":\"https://jyimgs.gsxcdn.com/upload/image/question/format/20191105/201911050014141547f585df5f31843b5889790d8a1628f13121954.png\",\"style\":{\"src\":\"https://jyimgs.gsxcdn.com/upload/image/question/format/20191105/201911050014141547f585df5f31843b5889790d8a1628f13121954.png\",\"width\":\"51\",\"height\":\"20\"},\"source\":\"\\\\((n-3)\\\\)\"},{\"typeEnum\":\"text\",\"content\":\"计算即可得解．\",\"style\":{},\"source\":null},{\"typeEnum\":\"br\",\"content\":null,\"style\":{},\"source\":null},{\"typeEnum\":\"text\",\"content\":\"本题考查了多边形的对角线公式，熟记从每一个顶点处可以作的对角线的条数为\",\"style\":{},\"source\":null},{\"typeEnum\":\"latex\",\"content\":\"https://jyimgs.gsxcdn.com/upload/image/question/format/20191105/201911050014141547f585df5f31843b5889790d8a1628f13121954.png\",\"style\":{\"src\":\"https://jyimgs.gsxcdn.com/upload/image/question/format/20191105/201911050014141547f585df5f31843b5889790d8a1628f13121954.png\",\"width\":\"51\",\"height\":\"20\"},\"source\":\"\\\\((n-3)\\\\)\"},{\"typeEnum\":\"text\",\"content\":\"是解题的关键．\",\"style\":{},\"source\":null}]"
+        }
+      ],
+      "similarProblem": false,
+      "questionBackId": "5999325",
+      "questionBackType": 2,
+      "questionAddSource": 2,
+      "wrongBookTag": [
+        {
+          "idx": 1,
+          "desc": "错题",
+          "code": 1
+        }
+      ],
+      "lessonIdx": 1,
+      "lessonName": "EVA-错题本展示1",
+      "clazzLessonNumber": "3453111324776449",
+      "dataId": "816",
+      "lastOption": "B"
     }
   ]
 }

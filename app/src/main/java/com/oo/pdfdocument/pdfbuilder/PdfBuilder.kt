@@ -7,19 +7,18 @@ import android.graphics.pdf.PdfDocument
 import android.os.Environment
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
-import android.text.TextUtils
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.oo.pdfdocument.PdfResourceDownLoader
 import com.oo.pdfdocument.bean.DataResponse
 import com.oo.pdfdocument.bean.QuestionResp
+import com.oo.pdfdocument.bean.TypeTextData
 import java.io.File
-import kotlin.math.roundToInt
 
 
 class PdfBuilder(val context: Context) {
-    val TAG  = "PdfBuilder"
+    val TAG = "PdfBuilder"
     var pdfDocument = PdfDocument()
     var pageWidth = 0
     var pageHeight = 0
@@ -28,25 +27,24 @@ class PdfBuilder(val context: Context) {
     var document = Document()
     val gson = Gson()
 
-    val localPath = ArrayList<Pair<String,String>>()
+    val localPath = HashMap<String, String>()
 
     /**
      * 下载网络资源
      * 当前 数据中题目的部分是 json
      * */
-    fun prepareImageResouce(
-        context: Context,
-        resp: DataResponse,
-        callback: ResourcePrepareCallback
-    ) {
+    fun prepareImageResouce(context: Context, resp: DataResponse, callback: ResourcePrepareCallback) {
         //将所有的图片资源转为本地路径
         val imageUrls = getImageUrls(resp)
 
-        PdfResourceDownLoader.downloadImages(context, imageUrls, object : PdfResourceDownLoader.MultiRequestCallback {
-                override fun success(paths: ArrayList<Pair<String, String>>) {
+        PdfResourceDownLoader.downloadImages(
+            context,
+            imageUrls,
+            object : PdfResourceDownLoader.MultiRequestCallback {
+                override fun success(paths: HashMap<String, String>) {
                     //
                     localPath.clear()
-                    localPath.addAll(paths)
+                    localPath.putAll(paths)
                     //根据数据 生成 spannablestring 以及 part
                     structPdfData(resp)
                     //回调--准备工作完成
@@ -57,50 +55,34 @@ class PdfBuilder(val context: Context) {
     }
 
 
-    private fun replaceUrlToPath(resp: DataResponse, paths: ArrayList<Pair<String, String>>) {
-        resp.data?.forEach { questionData ->
-            //题干 的组成
-            questionData.questionStem?.forEach { typeTextData ->
-                when (typeTextData.type) {
-                    5 -> {//5 代表啥？
-                        val sourceJson = typeTextData.text
-                        val jsonArray = gson.fromJson(sourceJson, JsonArray::class.java)
-                        for (jsonElement in jsonArray) {
-                            val questionResp = gson.fromJson(jsonElement, QuestionResp::class.java)
-                            when (questionResp.typeEnum) {
-                                "latex" -> {//图片部分
-                                    if (questionResp.style != null && questionResp?.style?.src != null) {
-                                        //替换 url 为 本地 path
-                                        for ((key, path) in paths) {
-                                            if (TextUtils.equals(key, questionResp.style?.src)) {
-                                                Log.i("pdfbuilder","$key   $path")
-                                                typeTextData.text?.replace(key,path)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     /**
      * 获取需要下载的图片集合
      * */
-    private fun getImageUrls(resp: DataResponse):ArrayList<String> {
+    private fun getImageUrls(resp: DataResponse): ArrayList<String> {
         val result = ArrayList<String>()
         resp.data?.forEach { questionData ->
             //题干
-            questionData.questionStem?.forEach { typeTextData ->
-                when (typeTextData.type) {
-                    5 -> {//5 代表啥？
-                        val sourceJson = typeTextData.text
-                        val jsonArray = gson.fromJson(sourceJson, JsonArray::class.java)
-                        for (jsonElement in jsonArray) {
-                            val questionResp = gson.fromJson(jsonElement, QuestionResp::class.java)
+            getPdfUrls(questionData.questionStem, result)
+            //选项
+            getOptionUrls(questionData.questionOption, result)
+            //答案
+            getPdfUrls(questionData.questionAnswer,result)
+            //分析
+            getPdfUrls(questionData.questionAnalysis,result)
+        }
+        return result
+    }
+
+    private fun getOptionUrls(serverData: ArrayList<TypeTextData>?, result: ArrayList<String>) {
+        serverData?.forEach { typeTextData ->
+            when (typeTextData.type) {
+                5 -> {//5 代表啥？
+                    val sourceJson = typeTextData.text
+                    val jsonArray = gson.fromJson(sourceJson, JsonArray::class.java)
+                    for (outElement in jsonArray) {
+                        for (jsonElement in outElement.asJsonArray) {
+                            val questionResp =
+                                gson.fromJson(jsonElement, QuestionResp::class.java)
                             when (questionResp.typeEnum) {
                                 "latex" -> {//图片部分
                                     if (questionResp.style != null && questionResp?.style?.src != null) {
@@ -109,14 +91,31 @@ class PdfBuilder(val context: Context) {
                                 }
                             }
                         }
-
                     }
                 }
             }
-            // TODO: 2020/1/18  答案 解析等
-
         }
-        return result
+    }
+
+    private fun getPdfUrls(serverData: ArrayList<TypeTextData>?, result: ArrayList<String>) {
+        serverData?.forEach { typeTextData ->
+            when (typeTextData.type) {
+                5 -> {//5 代表啥？
+                    val sourceJson = typeTextData.text
+                    val jsonArray = gson.fromJson(sourceJson, JsonArray::class.java)
+                    for (jsonElement in jsonArray) {
+                        val questionResp = gson.fromJson(jsonElement, QuestionResp::class.java)
+                        when (questionResp.typeEnum) {
+                            "latex" -> {//图片部分
+                                if (questionResp.style != null && questionResp?.style?.src != null) {
+                                    result.add(questionResp.style?.src!!)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     interface ResourcePrepareCallback {
@@ -125,59 +124,112 @@ class PdfBuilder(val context: Context) {
 
     fun transitBitmapForPdf(path: String, w: Int, h: Int): Bitmap {
         val options = BitmapFactory.Options()
-        options.outWidth = (w*context.resources.displayMetrics.density).roundToInt()
-        options.outHeight = (h*context.resources.displayMetrics.density).roundToInt()
+//        options.outWidth = (w*context.resources.displayMetrics.density).roundToInt()
+//        options.outHeight = (h*context.resources.displayMetrics.density).roundToInt()
         if (File(path).exists()) {
             return BitmapFactory.decodeFile(path, options)
-        }else{
-            return Bitmap.createBitmap(options.outWidth,options.outHeight,Bitmap.Config.RGB_565)
+        } else {
+            return Bitmap.createBitmap(options.outWidth, options.outHeight, Bitmap.Config.RGB_565)
         }
-
     }
-
-
     /**
      * 将 数据转为 生成 pdf 文件所需要的结构列表
      * */
     fun structPdfData(resp: DataResponse) {
         //首先 按照题目进行循环
-
         val spannableList = ArrayList<SpannableStringBuilder>()
         resp.data?.forEach { questionData ->
+            Log.i(TAG, "structPdfData: 题干")
             //题干
-            val spannableStringBuilder = SpannableStringBuilder()
-            questionData.questionStem?.forEach { typeTextData ->
-                when (typeTextData.type) {
-                    5 -> {//5 代表啥？
-                        val sourceJson = typeTextData.text
-                        val jsonArray = gson.fromJson(sourceJson, JsonArray::class.java)
-                        for (jsonElement in jsonArray) {
-                            val questionResp = gson.fromJson(jsonElement, QuestionResp::class.java)
+            spannableList.add(buildSpannableString(questionData.questionStem))
+            //选项
+            Log.i(TAG, "structPdfData: 选项")
+            buildOptionSpannableString(questionData.questionOption, spannableList)
+            //答案
+            Log.i(TAG, "structPdfData: 答案")
+            spannableList.add(buildSpannableString(questionData.questionAnswer))
+            //解析
+            Log.i(TAG, "structPdfData: 解析")
+            spannableList.add(buildSpannableString(questionData.questionAnalysis))
+        }
+        for (spannableStringBuilder in spannableList) {
+            addContent(spannableStringBuilder)
+        }
+
+    }
+
+    private fun buildSpannableString(questionData: ArrayList<TypeTextData>?): SpannableStringBuilder {
+        val stemSsb = SpannableStringBuilder()
+        questionData?.forEach { typeTextData ->
+            when (typeTextData.type) {
+                5 -> {//5 代表啥？
+                    val sourceJson = typeTextData.text
+                    val jsonArray = gson.fromJson(sourceJson, JsonArray::class.java)
+                    for (jsonElement in jsonArray) {
+                        val questionResp = gson.fromJson(jsonElement, QuestionResp::class.java)
+                        when (questionResp.typeEnum) {
+                            "text" -> {//文字部分
+                                stemSsb.append(questionResp.content)
+                            }
+                            "latex" -> {//图片部分
+                                val w = questionResp.style?.width?.toInt() ?: 0
+                                val h = questionResp.style?.height?.toInt() ?: 0
+
+                                localPath.get(questionResp.content)?.run {
+                                    questionResp.content = this
+                                }
+                                val pdfBitmap =
+                                    transitBitmapForPdf(questionResp.content ?: "", w, h)
+                                stemSsb.append("图片")
+                                val centerImageSpan = CenterImageSpan(pdfBitmap)
+                                stemSsb.setSpan(
+                                    centerImageSpan,
+                                    stemSsb.length - 2,
+                                    stemSsb.length,
+                                    SpannableString.SPAN_INCLUSIVE_EXCLUSIVE
+                                )
+                            }
+                            else -> {
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return stemSsb
+    }
+
+    private fun buildOptionSpannableString(questionData: ArrayList<TypeTextData>?, spannableList: ArrayList<SpannableStringBuilder>) {
+        questionData?.forEach { typeTextData ->
+            when (typeTextData.type) {
+                5 -> {//5 代表啥？
+                    val sourceJson = typeTextData.text
+                    val jsonArray = gson.fromJson(sourceJson, JsonArray::class.java)
+                    for (outElement in jsonArray) {
+                        val optionSsb = SpannableStringBuilder()
+                        for (jsonElement in outElement.asJsonArray) {
+                            val questionResp =
+                                gson.fromJson(jsonElement, QuestionResp::class.java)
                             when (questionResp.typeEnum) {
                                 "text" -> {//文字部分
-                                    spannableStringBuilder.append(questionResp.content)
+                                    optionSsb.append(questionResp.content)
                                 }
                                 "latex" -> {//图片部分
                                     val w = questionResp.style?.width?.toInt() ?: 0
                                     val h = questionResp.style?.height?.toInt() ?: 0
 
-                                    for ((url, path) in localPath) {
-                                        if (TextUtils.equals(url,questionResp.content)) {
-                                            Log.i(TAG, "structPdfData: url $url")
-                                            Log.i(TAG, "structPdfData: path ${questionResp.content}")
-                                            Log.i(TAG, "structPdfData: content ${path}")
-                                            questionResp.content = path
-                                        }
+                                    localPath.get(questionResp.content)?.run {
+                                        questionResp.content = this
                                     }
 
                                     val pdfBitmap =
                                         transitBitmapForPdf(questionResp.content ?: "", w, h)
-                                    spannableStringBuilder.append("图片")
+                                    optionSsb.append("图片")
                                     val centerImageSpan = CenterImageSpan(pdfBitmap)
-                                    spannableStringBuilder.setSpan(
+                                    optionSsb.setSpan(
                                         centerImageSpan,
-                                        spannableStringBuilder.length - 2,
-                                        spannableStringBuilder.length,
+                                        optionSsb.length - 2,
+                                        optionSsb.length,
                                         SpannableString.SPAN_INCLUSIVE_EXCLUSIVE
                                     )
                                 }
@@ -185,73 +237,37 @@ class PdfBuilder(val context: Context) {
                                 }
                             }
                         }
+                        spannableList.add(optionSsb)
                     }
                 }
             }
-            spannableList.add(spannableStringBuilder)
         }
-
-        for (spannableStringBuilder in spannableList) {
-            addContent(spannableStringBuilder)
-        }
-
     }
 
 
     fun addContent(spannableString: SpannableStringBuilder): PdfBuilder {
         val textPart = TextPart(spannableString, pageWidth)
         if (document.pages.isEmpty()) {
-            document.pages.add(Page())
+            document.pages.add(Page(1))
         }
         val lastestPage = document.pages.last()
         //高度是否还有富余
         val remainHeight = lastestPage.getRemainHeight(pageHeight)
         val measureHeight = textPart.measureSize()
-        if (measureHeight <= remainHeight) {
+        if (measureHeight <= remainHeight - 10) {
             //如果可以绘制
             lastestPage.parts.add(textPart)
         } else {
             //如果不能绘制 看看最有一个 part 是否能通过拆分达到容量
             var tempPart = textPart.canSplit(remainHeight)
             if (tempPart == null) {//无法拆分 将 textpart 加入到下一页
-                val newPage = Page()
+                val newPage = Page(lastestPage.pageIndex + 1)
                 document.pages.add(newPage)
                 newPage.parts.add(textPart)
             } else {
                 //textPart 是原页面的
                 lastestPage.parts.add(textPart)
-                val newPage = Page()
-                document.pages.add(newPage)
-                newPage.parts.add(tempPart)
-            }
-        }
-        return this
-    }
-
-    fun addContent(text: String): PdfBuilder {
-        val spannableString = SpannableStringBuilder(text)
-        val textPart = TextPart(spannableString, pageWidth)
-        if (document.pages.isEmpty()) {
-            document.pages.add(Page())
-        }
-        val lastestPage = document.pages.last()
-        //高度是否还有富余
-        val remainHeight = lastestPage.getRemainHeight(pageHeight)
-        val measureHeight = textPart.measureSize()
-        if (measureHeight <= remainHeight) {
-            //如果可以绘制
-            lastestPage.parts.add(textPart)
-        } else {
-            //如果不能绘制 看看最有一个 part 是否能通过拆分达到容量
-            var tempPart = textPart.canSplit(remainHeight)
-            if (tempPart == null) {//无法拆分 将 textpart 加入到下一页
-                val newPage = Page()
-                document.pages.add(newPage)
-                newPage.parts.add(textPart)
-            } else {
-                //textPart 是原页面的
-                lastestPage.parts.add(textPart)
-                val newPage = Page()
+                val newPage = Page(lastestPage.pageIndex + 1)
                 document.pages.add(newPage)
                 newPage.parts.add(tempPart)
             }
@@ -283,28 +299,33 @@ class PdfBuilder(val context: Context) {
                 }
                 pdfDocument.finishPage(currentPage)
             }
+            document.pages.clear()
             writeToFile()
         }.start()
     }
 
     private fun writeToFile() {
-
         val file =
             File("${context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)?.path}/${System.currentTimeMillis()}.pdf")
         file.createNewFile()
         pdfDocument.writeTo(file.outputStream())
         pdfDocument.close()
+        pdfDocument = PdfDocument()
         Log.i("TAG", "${file.path}")
     }
 
 
     inner class Document {
         val pages = ArrayList<Page>()
-
     }
 
-    inner class Page {
+    inner class Page(val pageIndex: Int) {
         val parts = ArrayList<Part>()
+        init {
+            //每一初次创建 添加页首
+            parts.add(HeadPart(context, pageIndex))
+            parts.add(HeadLinePart())
+        }
         fun getRemainHeight(height: Int): Int {
             var h = height
             for (part in parts) {
@@ -312,8 +333,5 @@ class PdfBuilder(val context: Context) {
             }
             return h
         }
-
     }
-
-
 }
