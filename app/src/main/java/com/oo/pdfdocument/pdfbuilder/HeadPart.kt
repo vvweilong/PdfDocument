@@ -1,8 +1,11 @@
 package com.oo.pdfdocument.pdfbuilder
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import android.graphics.drawable.Drawable
+import android.graphics.Rect
+import android.text.Layout
+import android.text.StaticLayout
 import android.text.TextPaint
 import com.oo.pdfdocument.R
 
@@ -10,20 +13,38 @@ import com.oo.pdfdocument.R
  * 每页的 顶部
  *        图片         1
  * */
-class HeadPart(context: Context,val pageIndex:Int): Part() {
-    private val drawable:Drawable = context.resources.getDrawable(R.mipmap.ic_launcher)
+class HeadPart(val context: Context, val pageIndex: Int,val pageWidth: Int,val iconw:Int,val iconh:Int) : Part() {
+
+    val staticLayout:StaticLayout
+    init {
+        staticLayout = StaticLayout(
+            "$pageIndex",
+            TextPaint(),
+            pageWidth,
+            Layout.Alignment.ALIGN_OPPOSITE,
+            1f,
+            0f,
+            true
+        )
+
+
+
+    }
     override fun measureSize(): Int {
-        //图片
-        return drawable.bounds.height()
+        return Math.max(staticLayout.height,iconh)
+
     }
 
     override fun drawPdf(pdfCanvas: Canvas?) {
-        //todo  绘制图片 水平居中
-
-        //todo 绘制页码
-        val textPaint = TextPaint()
-        val measureText = textPaint.measureText("$pageIndex")
-        pdfCanvas?.drawText("$pageIndex",pdfCanvas.width - measureText,0f,textPaint)
+        pdfCanvas?.run {
+            //图片
+            val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.ic_launcher)
+            drawBitmap(bitmap,null, Rect(width/2 - iconw/2,0,width/2 +iconw/2, iconh),null)
+            //页号
+            translate(0f,(iconh-staticLayout.height).toFloat())
+            staticLayout.draw(this)
+            translate(0f,-(iconh-staticLayout.height).toFloat())
+        }
     }
 
     override fun canSplit(desierHeight: Int): Part? {

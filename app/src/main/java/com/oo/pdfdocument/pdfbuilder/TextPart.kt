@@ -1,7 +1,6 @@
 package com.oo.pdfdocument.pdfbuilder
 
 import android.graphics.Canvas
-import android.graphics.Region
 import android.text.Layout
 import android.text.SpannableStringBuilder
 import android.text.StaticLayout
@@ -54,7 +53,6 @@ class TextPart(conten: SpannableStringBuilder, width: Int) : Part() {
     }
 
     override fun drawPdf(pdfCanvas: Canvas?) {
-        val region = Region(drawRect)
         staticLayout.draw(pdfCanvas)
     }
 

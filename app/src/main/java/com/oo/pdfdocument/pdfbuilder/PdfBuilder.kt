@@ -3,8 +3,10 @@ package com.oo.pdfdocument.pdfbuilder
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Rect
 import android.graphics.pdf.PdfDocument
 import android.os.Environment
+import android.text.Spannable
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.util.Log
@@ -15,6 +17,7 @@ import com.oo.pdfdocument.bean.DataResponse
 import com.oo.pdfdocument.bean.QuestionResp
 import com.oo.pdfdocument.bean.TypeTextData
 import java.io.File
+import kotlin.math.roundToInt
 
 
 class PdfBuilder(val context: Context) {
@@ -89,6 +92,11 @@ class PdfBuilder(val context: Context) {
                                         result.add(questionResp.style?.src!!)
                                     }
                                 }
+                                "image"->{
+                                    if (questionResp.style != null && questionResp?.style?.src != null) {
+                                        result.add(questionResp.style?.src!!)
+                                    }
+                                }
                             }
                         }
                     }
@@ -111,6 +119,11 @@ class PdfBuilder(val context: Context) {
                                     result.add(questionResp.style?.src!!)
                                 }
                             }
+                            "image"->{
+                                if (questionResp.style != null && questionResp?.style?.src != null) {
+                                    result.add(questionResp.style?.src!!)
+                                }
+                            }
                         }
                     }
                 }
@@ -124,8 +137,8 @@ class PdfBuilder(val context: Context) {
 
     fun transitBitmapForPdf(path: String, w: Int, h: Int): Bitmap {
         val options = BitmapFactory.Options()
-//        options.outWidth = (w*context.resources.displayMetrics.density).roundToInt()
-//        options.outHeight = (h*context.resources.displayMetrics.density).roundToInt()
+        options.outWidth = (w*context.resources.displayMetrics.density).roundToInt()
+        options.outHeight = (h*context.resources.displayMetrics.density).roundToInt()
         if (File(path).exists()) {
             return BitmapFactory.decodeFile(path, options)
         } else {
@@ -141,16 +154,16 @@ class PdfBuilder(val context: Context) {
         resp.data?.forEach { questionData ->
             Log.i(TAG, "structPdfData: 题干")
             //题干
-            spannableList.add(buildSpannableString(questionData.questionStem))
+            buildSpannableString(questionData.questionStem,spannableList)
             //选项
             Log.i(TAG, "structPdfData: 选项")
             buildOptionSpannableString(questionData.questionOption, spannableList)
             //答案
             Log.i(TAG, "structPdfData: 答案")
-            spannableList.add(buildSpannableString(questionData.questionAnswer))
+            buildSpannableString(questionData.questionAnswer,spannableList)
             //解析
             Log.i(TAG, "structPdfData: 解析")
-            spannableList.add(buildSpannableString(questionData.questionAnalysis))
+            buildSpannableString(questionData.questionAnalysis,spannableList)
         }
         for (spannableStringBuilder in spannableList) {
             addContent(spannableStringBuilder)
@@ -158,8 +171,9 @@ class PdfBuilder(val context: Context) {
 
     }
 
-    private fun buildSpannableString(questionData: ArrayList<TypeTextData>?): SpannableStringBuilder {
+    private fun buildSpannableString(questionData: ArrayList<TypeTextData>?,partList:ArrayList<SpannableStringBuilder>) {
         val stemSsb = SpannableStringBuilder()
+        val imageSsbList = ArrayList<SpannableStringBuilder>()
         questionData?.forEach { typeTextData ->
             when (typeTextData.type) {
                 5 -> {//5 代表啥？
@@ -189,6 +203,24 @@ class PdfBuilder(val context: Context) {
                                     SpannableString.SPAN_INCLUSIVE_EXCLUSIVE
                                 )
                             }
+                            "image"->{
+                                if (questionResp.style != null && questionResp?.style?.src != null) {
+                                    localPath.get(questionResp.content)?.run {
+                                        questionResp.content = this
+                                    }
+                                    val w = questionResp.style?.width?.toInt() ?: 0
+                                    val h = questionResp.style?.height?.toInt() ?: 0
+                                    val imageSsb = SpannableStringBuilder()
+                                    imageSsb.append("图片")
+                                    val transitBitmapForPdf =
+                                        transitBitmapForPdf(questionResp.content ?: "", w, h)
+                                    imageSsb.setSpan(CenterImageSpan(transitBitmapForPdf),0,imageSsb.length,Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
+                                    imageSsbList.add(imageSsb)
+                                }
+                            }
+                            "br"->{//？？换行？
+                                stemSsb.append("\n")
+                            }
                             else -> {
                             }
                         }
@@ -196,7 +228,8 @@ class PdfBuilder(val context: Context) {
                 }
             }
         }
-        return stemSsb
+        partList.add(stemSsb)
+        partList.addAll(imageSsbList)
     }
 
     private fun buildOptionSpannableString(questionData: ArrayList<TypeTextData>?, spannableList: ArrayList<SpannableStringBuilder>) {
@@ -214,7 +247,7 @@ class PdfBuilder(val context: Context) {
                                 "text" -> {//文字部分
                                     optionSsb.append(questionResp.content)
                                 }
-                                "latex" -> {//图片部分
+                                "latex","image" -> {//图片部分
                                     val w = questionResp.style?.width?.toInt() ?: 0
                                     val h = questionResp.style?.height?.toInt() ?: 0
 
@@ -233,6 +266,9 @@ class PdfBuilder(val context: Context) {
                                         SpannableString.SPAN_INCLUSIVE_EXCLUSIVE
                                     )
                                 }
+                                "br"->{//？？换行？
+                                    optionSsb.append("\n")
+                                }
                                 else -> {
                                 }
                             }
@@ -248,7 +284,7 @@ class PdfBuilder(val context: Context) {
     fun addContent(spannableString: SpannableStringBuilder): PdfBuilder {
         val textPart = TextPart(spannableString, pageWidth)
         if (document.pages.isEmpty()) {
-            document.pages.add(Page(1))
+            document.pages.add(Page(1,20,20))
         }
         val lastestPage = document.pages.last()
         //高度是否还有富余
@@ -261,13 +297,13 @@ class PdfBuilder(val context: Context) {
             //如果不能绘制 看看最有一个 part 是否能通过拆分达到容量
             var tempPart = textPart.canSplit(remainHeight)
             if (tempPart == null) {//无法拆分 将 textpart 加入到下一页
-                val newPage = Page(lastestPage.pageIndex + 1)
+                val newPage = Page(lastestPage.pageIndex + 1,20,20)
                 document.pages.add(newPage)
                 newPage.parts.add(textPart)
             } else {
                 //textPart 是原页面的
                 lastestPage.parts.add(textPart)
-                val newPage = Page(lastestPage.pageIndex + 1)
+                val newPage = Page(lastestPage.pageIndex + 1,20,20)
                 document.pages.add(newPage)
                 newPage.parts.add(tempPart)
             }
@@ -289,6 +325,7 @@ class PdfBuilder(val context: Context) {
                     pageHeight,
                     document.pages.indexOf(page) + 1
                 )
+                builder.setContentRect(Rect(0,20,pageWidth,pageHeight-20))
                 val currentPage = pdfDocument.startPage(builder.create())
                 var lastMeasureSize = 0
                 for (part in page.parts) {
@@ -319,15 +356,15 @@ class PdfBuilder(val context: Context) {
         val pages = ArrayList<Page>()
     }
 
-    inner class Page(val pageIndex: Int) {
+    inner class Page(val pageIndex: Int,val topPadding:Int,val bottomPadding:Int) {
         val parts = ArrayList<Part>()
         init {
             //每一初次创建 添加页首
-            parts.add(HeadPart(context, pageIndex))
+            parts.add(HeadPart(context, pageIndex,pageWidth,50,25))
             parts.add(HeadLinePart())
         }
         fun getRemainHeight(height: Int): Int {
-            var h = height
+            var h = height-topPadding-bottomPadding
             for (part in parts) {
                 h -= part.measureSize()
             }
