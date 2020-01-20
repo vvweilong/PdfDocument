@@ -1,4 +1,4 @@
-package com.oo.pdfdocument.pdfbuilder
+package com.oo.pdfdocument.pdfParts
 
 import android.graphics.Canvas
 import android.text.Layout
@@ -85,6 +85,6 @@ class TextPart(conten: SpannableStringBuilder, width: Int) : Part() {
         val splitedContent = SpannableStringBuilder(content.substring(splitStrPosition, content.length))
         reinit(remainContent)
         Log.i("tag", "canSplit: ${measureSize()}")
-        return TextPart(splitedContent,pageWidth)
+        return TextPart(splitedContent, pageWidth)
     }
 }

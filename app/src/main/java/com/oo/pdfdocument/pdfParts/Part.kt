@@ -1,4 +1,4 @@
-package com.oo.pdfdocument.pdfbuilder
+package com.oo.pdfdocument.pdfParts
 
 import android.graphics.Canvas
 import android.graphics.RectF
@@ -23,6 +23,6 @@ abstract class Part {
      * */
     protected var drawRect= RectF()
 
-    abstract fun canSplit(desierHeight:Int):Part?
+    abstract fun canSplit(desierHeight:Int): Part?
 
 }

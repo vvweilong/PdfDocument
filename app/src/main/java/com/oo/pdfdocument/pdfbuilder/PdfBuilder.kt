@@ -16,6 +16,10 @@ import com.oo.pdfdocument.PdfResourceDownLoader
 import com.oo.pdfdocument.bean.DataResponse
 import com.oo.pdfdocument.bean.QuestionResp
 import com.oo.pdfdocument.bean.TypeTextData
+import com.oo.pdfdocument.pdfParts.HeadLinePart
+import com.oo.pdfdocument.pdfParts.HeadPart
+import com.oo.pdfdocument.pdfParts.Part
+import com.oo.pdfdocument.pdfParts.TextPart
 import java.io.File
 import kotlin.math.roundToInt
 
@@ -282,7 +286,8 @@ class PdfBuilder(val context: Context) {
 
 
     fun addContent(spannableString: SpannableStringBuilder): PdfBuilder {
-        val textPart = TextPart(spannableString, pageWidth)
+        val textPart =
+            TextPart(spannableString, pageWidth)
         if (document.pages.isEmpty()) {
             document.pages.add(Page(1,20,20))
         }
@@ -360,7 +365,15 @@ class PdfBuilder(val context: Context) {
         val parts = ArrayList<Part>()
         init {
             //每一初次创建 添加页首
-            parts.add(HeadPart(context, pageIndex,pageWidth,50,25))
+            parts.add(
+                HeadPart(
+                    context,
+                    pageIndex,
+                    pageWidth,
+                    50,
+                    25
+                )
+            )
             parts.add(HeadLinePart())
         }
         fun getRemainHeight(height: Int): Int {

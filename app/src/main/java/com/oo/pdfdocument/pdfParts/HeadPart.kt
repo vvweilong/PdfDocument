@@ -1,4 +1,4 @@
-package com.oo.pdfdocument.pdfbuilder
+package com.oo.pdfdocument.pdfParts
 
 import android.content.Context
 import android.graphics.BitmapFactory
