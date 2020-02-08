@@ -9,6 +9,8 @@ import android.os.Environment
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
+import android.text.style.AbsoluteSizeSpan
+import android.text.style.ImageSpan
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonArray
@@ -143,6 +145,8 @@ class PdfBuilder(val context: Context) {
         val options = BitmapFactory.Options()
         options.outWidth = (w*context.resources.displayMetrics.density).roundToInt()
         options.outHeight = (h*context.resources.displayMetrics.density).roundToInt()
+        Log.i(TAG,"w = ${w} h = ${h}")
+        Log.i(TAG,"w = ${options.outWidth} h = ${options.outHeight}")
         if (File(path).exists()) {
             return BitmapFactory.decodeFile(path, options)
         } else {
@@ -199,7 +203,7 @@ class PdfBuilder(val context: Context) {
                                 val pdfBitmap =
                                     transitBitmapForPdf(questionResp.content ?: "", w, h)
                                 stemSsb.append("图片")
-                                val centerImageSpan = CenterImageSpan(pdfBitmap)
+                                val centerImageSpan = CenterImageSpan(context,pdfBitmap)
                                 stemSsb.setSpan(
                                     centerImageSpan,
                                     stemSsb.length - 2,
@@ -218,7 +222,7 @@ class PdfBuilder(val context: Context) {
                                     imageSsb.append("图片")
                                     val transitBitmapForPdf =
                                         transitBitmapForPdf(questionResp.content ?: "", w, h)
-                                    imageSsb.setSpan(CenterImageSpan(transitBitmapForPdf),0,imageSsb.length,Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
+                                    imageSsb.setSpan(ImageSpan(context,transitBitmapForPdf),0,imageSsb.length,Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
                                     imageSsbList.add(imageSsb)
                                 }
                             }
@@ -232,6 +236,7 @@ class PdfBuilder(val context: Context) {
                 }
             }
         }
+        stemSsb.setSpan(AbsoluteSizeSpan(Math.round(12*context.resources.displayMetrics.density)),0,stemSsb.length,Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
         partList.add(stemSsb)
         partList.addAll(imageSsbList)
     }
@@ -262,7 +267,26 @@ class PdfBuilder(val context: Context) {
                                     val pdfBitmap =
                                         transitBitmapForPdf(questionResp.content ?: "", w, h)
                                     optionSsb.append("图片")
-                                    val centerImageSpan = CenterImageSpan(pdfBitmap)
+                                    val centerImageSpan = CenterImageSpan(context,pdfBitmap)
+                                    optionSsb.setSpan(
+                                        centerImageSpan,
+                                        optionSsb.length - 2,
+                                        optionSsb.length,
+                                        SpannableString.SPAN_INCLUSIVE_EXCLUSIVE
+                                    )
+                                }
+                                "image" -> {//图片部分
+                                    val w = questionResp.style?.width?.toInt() ?: 0
+                                    val h = questionResp.style?.height?.toInt() ?: 0
+
+                                    localPath.get(questionResp.content)?.run {
+                                        questionResp.content = this
+                                    }
+
+                                    val pdfBitmap =
+                                        transitBitmapForPdf(questionResp.content ?: "", w, h)
+                                    optionSsb.append("图片")
+                                    val centerImageSpan = CenterImageSpan(context,pdfBitmap)
                                     optionSsb.setSpan(
                                         centerImageSpan,
                                         optionSsb.length - 2,
@@ -277,6 +301,7 @@ class PdfBuilder(val context: Context) {
                                 }
                             }
                         }
+                        optionSsb.setSpan(AbsoluteSizeSpan(Math.round(12*context.resources.displayMetrics.density)),0,optionSsb.length,Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
                         spannableList.add(optionSsb)
                     }
                 }
