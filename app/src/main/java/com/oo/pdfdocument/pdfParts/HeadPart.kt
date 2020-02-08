@@ -17,9 +17,11 @@ class HeadPart(val context: Context, val pageIndex: Int,val pageWidth: Int,val i
 
     val staticLayout:StaticLayout
     init {
+        val textPaint = TextPaint()
+        textPaint.textSize = 12*context.resources.displayMetrics.density
         staticLayout = StaticLayout(
             "$pageIndex",
-            TextPaint(),
+                textPaint,
             pageWidth,
             Layout.Alignment.ALIGN_OPPOSITE,
             1f,

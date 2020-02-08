@@ -56,10 +56,16 @@ class MainActivity : AppCompatActivity(), TextWatcher {
                 val response = gson.fromJson(readText, DataResponse::class.java)
                 pdfBuilder.prepareImageResouce(this,response,object :PdfBuilder.ResourcePrepareCallback{
                     override fun onPrepared() {
-                        Toast.makeText(this@MainActivity, "资源下载完成", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@MainActivity, "资源下载完成", Toast.LENGTH_LONG).show()
                         pdfBuilder.create()
                     }
                 })
+            }else{
+                val arrayOf = arrayOf(
+                    android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                )
+                ActivityCompat.requestPermissions(this,arrayOf,0)
             }
         }
     }
