@@ -275,25 +275,6 @@ class PdfBuilder(val context: Context) {
                                         SpannableString.SPAN_INCLUSIVE_EXCLUSIVE
                                     )
                                 }
-                                "image" -> {//图片部分
-                                    val w = questionResp.style?.width?.toInt() ?: 0
-                                    val h = questionResp.style?.height?.toInt() ?: 0
-
-                                    localPath.get(questionResp.content)?.run {
-                                        questionResp.content = this
-                                    }
-
-                                    val pdfBitmap =
-                                        transitBitmapForPdf(questionResp.content ?: "", w, h)
-                                    optionSsb.append("图片")
-                                    val centerImageSpan = CenterImageSpan(context,pdfBitmap)
-                                    optionSsb.setSpan(
-                                        centerImageSpan,
-                                        optionSsb.length - 2,
-                                        optionSsb.length,
-                                        SpannableString.SPAN_INCLUSIVE_EXCLUSIVE
-                                    )
-                                }
                                 "br"->{//？？换行？
                                     optionSsb.append("\n")
                                 }
@@ -395,8 +376,8 @@ class PdfBuilder(val context: Context) {
                     context,
                     pageIndex,
                     pageWidth,
-                    50,
-                    25
+                    50*context.resources.displayMetrics.density.roundToInt(),
+                    25*context.resources.displayMetrics.density.roundToInt()
                 )
             )
             parts.add(HeadLinePart())
