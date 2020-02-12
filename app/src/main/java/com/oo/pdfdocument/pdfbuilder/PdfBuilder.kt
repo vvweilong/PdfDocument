@@ -203,7 +203,7 @@ class PdfBuilder(val context: Context) {
                                 val pdfBitmap =
                                     transitBitmapForPdf(questionResp.content ?: "", w, h)
                                 stemSsb.append("图片")
-                                val centerImageSpan = CenterImageSpan(context,pdfBitmap)
+                                val centerImageSpan = CenterImageSpan(context,pdfBitmap,CenterImageSpan.ALIGN_FONT_CENTER)
                                 stemSsb.setSpan(
                                     centerImageSpan,
                                     stemSsb.length - 2,
@@ -267,7 +267,7 @@ class PdfBuilder(val context: Context) {
                                     val pdfBitmap =
                                         transitBitmapForPdf(questionResp.content ?: "", w, h)
                                     optionSsb.append("图片")
-                                    val centerImageSpan = CenterImageSpan(context,pdfBitmap)
+                                    val centerImageSpan = CenterImageSpan(context,pdfBitmap,CenterImageSpan.ALIGN_FONT_CENTER)
                                     optionSsb.setSpan(
                                         centerImageSpan,
                                         optionSsb.length - 2,
