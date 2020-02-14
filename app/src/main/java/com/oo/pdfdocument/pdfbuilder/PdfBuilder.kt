@@ -15,6 +15,7 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.oo.pdfdocument.PdfResourceDownLoader
+import com.oo.pdfdocument.Transitor
 import com.oo.pdfdocument.bean.DataResponse
 import com.oo.pdfdocument.bean.QuestionResp
 import com.oo.pdfdocument.bean.TypeTextData
@@ -45,6 +46,7 @@ class PdfBuilder(val context: Context) {
     fun prepareImageResouce(context: Context, resp: DataResponse, callback: ResourcePrepareCallback) {
         //将所有的图片资源转为本地路径
         val imageUrls = getImageUrls(resp)
+
 
         PdfResourceDownLoader.downloadImages(
             context,
@@ -141,17 +143,11 @@ class PdfBuilder(val context: Context) {
         fun onPrepared()
     }
 
+
     fun transitBitmapForPdf(path: String, w: Int, h: Int): Bitmap {
-        val options = BitmapFactory.Options()
-        options.outWidth = (w*context.resources.displayMetrics.density).roundToInt()
-        options.outHeight = (h*context.resources.displayMetrics.density).roundToInt()
-        Log.i(TAG,"w = ${w} h = ${h}")
-        Log.i(TAG,"w = ${options.outWidth} h = ${options.outHeight}")
-        if (File(path).exists()) {
-            return BitmapFactory.decodeFile(path, options)
-        } else {
-            return Bitmap.createBitmap(options.outWidth, options.outHeight, Bitmap.Config.RGB_565)
-        }
+        val transitBitmapForPdf = Transitor.transitBitmapForPdf(path, w, h)
+        Log.i(TAG, "transitBitmapForPdf:$w - ${transitBitmapForPdf.width} $h - ${transitBitmapForPdf.height}")
+        return transitBitmapForPdf
     }
     /**
      * 将 数据转为 生成 pdf 文件所需要的结构列表
@@ -236,7 +232,7 @@ class PdfBuilder(val context: Context) {
                 }
             }
         }
-        stemSsb.setSpan(AbsoluteSizeSpan(Math.round(12*context.resources.displayMetrics.density)),0,stemSsb.length,Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
+        stemSsb.setSpan(AbsoluteSizeSpan(18),0,stemSsb.length,Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
         partList.add(stemSsb)
         partList.addAll(imageSsbList)
     }
@@ -282,7 +278,7 @@ class PdfBuilder(val context: Context) {
                                 }
                             }
                         }
-                        optionSsb.setSpan(AbsoluteSizeSpan(Math.round(12*context.resources.displayMetrics.density)),0,optionSsb.length,Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
+                        optionSsb.setSpan(AbsoluteSizeSpan(18),0,optionSsb.length,Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
                         spannableList.add(optionSsb)
                     }
                 }
@@ -328,7 +324,7 @@ class PdfBuilder(val context: Context) {
         return this
     }
 
-    fun create() {
+    fun create(listener:CreateListener) {
         Thread() {
             for (page in document.pages) {
                 val builder = PdfDocument.PageInfo.Builder(
@@ -348,11 +344,15 @@ class PdfBuilder(val context: Context) {
                 pdfDocument.finishPage(currentPage)
             }
             document.pages.clear()
-            writeToFile()
+            listener.created(writeToFile())
         }.start()
     }
 
-    private fun writeToFile() {
+    interface CreateListener{
+        fun created(path: String)
+    }
+
+    private fun writeToFile():String {
         val file =
             File("${context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)?.path}/${System.currentTimeMillis()}.pdf")
         file.createNewFile()
@@ -360,6 +360,7 @@ class PdfBuilder(val context: Context) {
         pdfDocument.close()
         pdfDocument = PdfDocument()
         Log.i("TAG", "${file.path}")
+        return file.path
     }
 
 

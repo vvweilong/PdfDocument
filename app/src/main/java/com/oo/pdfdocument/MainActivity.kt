@@ -1,9 +1,11 @@
 package com.oo.pdfdocument
 
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.DisplayMetrics
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -35,11 +37,13 @@ class MainActivity : AppCompatActivity(), TextWatcher {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        val m = DisplayMetrics()
+        windowManager.defaultDisplay.getMetrics(m)
+        pdfBuilder.setPageSize(621, 791)
+        findViewById<Button>(R.id.create).setOnClickListener {
+            startActivity(Intent(this@MainActivity,PreviewActivity::class.java))
 
-
-
-        pdfBuilder.setPageSize(720, 1280)
-
+        }
         findViewById<Button>(R.id.add_text).setOnClickListener {
             val writePermission = ActivityCompat.checkSelfPermission(
                 this,
@@ -57,7 +61,17 @@ class MainActivity : AppCompatActivity(), TextWatcher {
                 pdfBuilder.prepareImageResouce(this,response,object :PdfBuilder.ResourcePrepareCallback{
                     override fun onPrepared() {
                         Toast.makeText(this@MainActivity, "资源下载完成", Toast.LENGTH_SHORT).show()
-                        pdfBuilder.create()
+                        pdfBuilder.create(object : PdfBuilder.CreateListener {
+                            override fun created(path: String) {
+                                runOnUiThread{
+                                    Toast.makeText(this@MainActivity, "资源下载完成", Toast.LENGTH_SHORT).show()
+                                    val intent =
+                                        Intent(this@MainActivity, PreviewActivity::class.java)
+                                    intent.putExtra("path",path)
+                                    startActivity(intent)
+                                }
+                            }
+                        })
                     }
                 })
             }
